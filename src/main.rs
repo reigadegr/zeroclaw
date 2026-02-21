@@ -33,10 +33,14 @@
 )]
 
 use anyhow::{bail, Context, Result};
+
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use dialoguer::{Input, Password};
 use serde::{Deserialize, Serialize};
-use std::io::Write;
+use std::io::{IsTerminal, Write};
 use tracing::{info, warn};
 use tracing_subscriber::{fmt, EnvFilter};
 
@@ -672,6 +676,7 @@ async fn main() -> Result<()> {
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")),
         )
+        .with_ansi(std::io::stdout().is_terminal())
         .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
